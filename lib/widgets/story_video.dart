@@ -24,9 +24,14 @@ class VideoLoader {
       this.state = LoadState.success;
       onComplete();
     }
+    Stream fileStream;
+    if(url.startsWith("file")){
+      fileStream= File.fromUri(Uri.parse(url)).openRead();
+    }else{
+      fileStream = DefaultCacheManager()
+          .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
 
-    final fileStream = DefaultCacheManager()
-        .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
+    }
 
     fileStream.listen((fileResponse) {
       if (fileResponse is FileInfo) {
