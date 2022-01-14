@@ -24,24 +24,27 @@ class VideoLoader {
       this.state = LoadState.success;
       onComplete();
     }
-    Stream fileStream;
-    if(url.startsWith("file")){
-      fileStream= File.fromUri(Uri.parse(url)).openRead();
+    if(url.startsWith("/")){
+      final fileStream= File.fromUri(Uri.parse(url));
+      this.state = LoadState.success;
+      this.videoFile = fileStream;
+      onComplete();
     }else{
-      fileStream = DefaultCacheManager()
+      final fileStream = DefaultCacheManager()
           .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
-
+      fileStream.listen((fileResponse) {
+        print(fileResponse);
+        if (fileResponse is FileInfo) {
+          if (this.videoFile == null) {
+            this.state = LoadState.success;
+            this.videoFile = fileResponse.file;
+            onComplete();
+          }
+        }
+      });
     }
 
-    fileStream.listen((fileResponse) {
-      if (fileResponse is FileInfo) {
-        if (this.videoFile == null) {
-          this.state = LoadState.success;
-          this.videoFile = fileResponse.file;
-          onComplete();
-        }
-      }
-    });
+
   }
 }
 
