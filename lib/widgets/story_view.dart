@@ -749,7 +749,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  InkWell(onTap: () {widget.onLikePressed!();},
+                  InkWell(onTap: () {widget.onLikePressed!(_currentStory);},
                     child: Column(
                 children:[Icon(
                       _currentStory!.hasUserLike
