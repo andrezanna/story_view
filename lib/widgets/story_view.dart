@@ -421,7 +421,7 @@ class StoryView extends StatefulWidget {
   /// provide this callback so as to enable scroll events on the list view.
   final Function(Direction?)? onVerticalSwipeComplete;
 
-  final Function? onLikePressed;
+  final ValueChanged<StoryItem>? onLikePressed;
 
   /// Callback for when a story is currently being shown.
   final ValueChanged<StoryItem>? onStoryShow;
@@ -749,7 +749,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  InkWell(onTap: () {widget.onLikePressed!(_currentStory);},
+                  InkWell(onTap: () {widget.onLikePressed!(_currentStory!);},
                     child: Column(
                 children:[Icon(
                       _currentStory!.hasUserLike
