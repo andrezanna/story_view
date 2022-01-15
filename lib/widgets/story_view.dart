@@ -439,6 +439,10 @@ class StoryView extends StatefulWidget {
 
   // Controls the playback of the stories
   final StoryController controller;
+  final Color? inactiveColor;
+  final IconData? likeIcon;
+  final Color? activeColor;
+  final TextStyle? iconTextStyle;
 
   StoryView({
     required this.storyItems,
@@ -449,7 +453,7 @@ class StoryView extends StatefulWidget {
     this.repeat = false,
     this.inline = false,
     this.onVerticalSwipeComplete,
-    this.onLikePressed,
+    this.onLikePressed, this.inactiveColor, this.likeIcon, this.activeColor, this.iconTextStyle,
   });
 
   @override
@@ -752,20 +756,18 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   InkWell(onTap: () {widget.onLikePressed!(_currentStory!);},
                     child: Column(
                 children:[Icon(
-                      _currentStory!.hasUserLike
-                          ? Icons.favorite
-                          : Icons.favorite_border,
+                      widget.likeIcon,
                       color: _currentStory!.hasUserLike
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey,
+                          ? widget.activeColor
+                          : widget.inactiveColor,
               ),
 
 
-                  Text("${_currentStory!.likes}",),
+                  Text("${_currentStory!.likes}",style: widget.iconTextStyle,),
                   ]),),
                   SizedBox(height: 30,),
-                  Icon(Icons.remove_red_eye_outlined,color: Colors.grey,),
-                  Text("${_currentStory!.views}",),
+                  Icon(Icons.remove_red_eye_outlined,color: widget.inactiveColor,),
+                  Text("${_currentStory!.views}",style: widget.iconTextStyle,),
                 ],
               ),
             ),
