@@ -35,11 +35,17 @@ class StoryItem {
 
   /// The page content
   final Widget view;
-  StoryItem(
-    this.view, {
-    required this.duration,
-    this.shown = false,
-  });
+
+  int likes;
+  int views;
+  bool hasUserLike;
+
+  StoryItem(this.view,
+      {required this.duration,
+      this.shown = false,
+      required this.likes,
+      required this.views,
+      required this.hasUserLike});
 
   /// Short hand to create text-only page.
   ///
@@ -49,16 +55,18 @@ class StoryItem {
   ///
   /// Works for inline and full-page stories. See [StoryView.inline] for more on
   /// what inline/full-page means.
-  static StoryItem text({
-    required String title,
-    required Color backgroundColor,
-    Key? key,
-    TextStyle? textStyle,
-    bool shown = false,
-    bool roundedTop = false,
-    bool roundedBottom = false,
-    Duration? duration,
-  }) {
+  static StoryItem text(
+      {required String title,
+      required Color backgroundColor,
+      Key? key,
+      TextStyle? textStyle,
+      bool shown = false,
+      bool roundedTop = false,
+      bool roundedBottom = false,
+      Duration? duration,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     double contrast = ContrastHelper.contrast([
       backgroundColor.red,
       backgroundColor.green,
@@ -100,21 +108,26 @@ class StoryItem {
       ),
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
     );
   }
 
   /// Factory constructor for page images. [controller] should be same instance as
   /// one passed to the `StoryView`
-  factory StoryItem.pageImage({
-    required String url,
-    required StoryController controller,
-    Key? key,
-    BoxFit imageFit = BoxFit.fitWidth,
-    String? caption,
-    bool shown = false,
-    Map<String, dynamic>? requestHeaders,
-    Duration? duration,
-  }) {
+  factory StoryItem.pageImage(
+      {required String url,
+      required StoryController controller,
+      Key? key,
+      BoxFit imageFit = BoxFit.fitWidth,
+      String? caption,
+      bool shown = false,
+      Map<String, dynamic>? requestHeaders,
+      Duration? duration,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     return StoryItem(
       Container(
         key: key,
@@ -158,23 +171,28 @@ class StoryItem {
       ),
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
     );
   }
 
   /// Shorthand for creating inline image. [controller] should be same instance as
   /// one passed to the `StoryView`
-  factory StoryItem.inlineImage({
-    required String url,
-    Text? caption,
-    required StoryController controller,
-    Key? key,
-    BoxFit imageFit = BoxFit.cover,
-    Map<String, dynamic>? requestHeaders,
-    bool shown = false,
-    bool roundedTop = true,
-    bool roundedBottom = false,
-    Duration? duration,
-  }) {
+  factory StoryItem.inlineImage(
+      {required String url,
+      Text? caption,
+      required StoryController controller,
+      Key? key,
+      BoxFit imageFit = BoxFit.cover,
+      Map<String, dynamic>? requestHeaders,
+      bool shown = false,
+      bool roundedTop = true,
+      bool roundedBottom = false,
+      Duration? duration,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     return StoryItem(
       ClipRRect(
         key: key,
@@ -212,129 +230,141 @@ class StoryItem {
       ),
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
     );
   }
 
   /// Shorthand for creating page video. [controller] should be same instance as
   /// one passed to the `StoryView`
-  factory StoryItem.pageVideo(
-    String url, {
-    required StoryController controller,
-    Key? key,
-    Duration? duration,
-    BoxFit imageFit = BoxFit.fitWidth,
-    String? caption,
-    bool shown = false,
-    Map<String, dynamic>? requestHeaders,
-  }) {
+  factory StoryItem.pageVideo(String url,
+      {required StoryController controller,
+      Key? key,
+      Duration? duration,
+      BoxFit imageFit = BoxFit.fitWidth,
+      String? caption,
+      bool shown = false,
+      Map<String, dynamic>? requestHeaders,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     return StoryItem(
-        Container(
-          key: key,
-          color: Colors.black,
-          child: Stack(
-            children: <Widget>[
-              StoryVideo.url(
-                url,
-                controller: controller,
-                requestHeaders: requestHeaders,
-              ),
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(bottom: 24),
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    color:
-                        caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption != null
-                        ? Text(
-                            caption,
-                            style: TextStyle(fontSize: 15, color: Colors.white),
-                            textAlign: TextAlign.center,
-                          )
-                        : SizedBox(),
-                  ),
+      Container(
+        key: key,
+        color: Colors.black,
+        child: Stack(
+          children: <Widget>[
+            StoryVideo.url(
+              url,
+              controller: controller,
+              requestHeaders: requestHeaders,
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.only(bottom: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  color: caption != null ? Colors.black54 : Colors.transparent,
+                  child: caption != null
+                      ? Text(
+                          caption,
+                          style: TextStyle(fontSize: 15, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        )
+                      : SizedBox(),
                 ),
-              )
-            ],
-          ),
+              ),
+            )
+          ],
         ),
-        shown: shown,
-        duration: duration ?? Duration(seconds: 10));
+      ),
+      shown: shown,
+      duration: duration ?? Duration(seconds: 10),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
+    );
   }
 
   /// Shorthand for creating a story item from an image provider such as `AssetImage`
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
-  factory StoryItem.pageProviderImage(
-    ImageProvider image, {
-    Key? key,
-    BoxFit imageFit = BoxFit.fitWidth,
-    String? caption,
-    bool shown = false,
-    Duration? duration,
-  }) {
+  factory StoryItem.pageProviderImage(ImageProvider image,
+      {Key? key,
+      BoxFit imageFit = BoxFit.fitWidth,
+      String? caption,
+      bool shown = false,
+      Duration? duration,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     return StoryItem(
-        Container(
-          key: key,
-          color: Colors.black,
-          child: Stack(
-            children: <Widget>[
-              Center(
-                child: Image(
-                  image: image,
-                  height: double.infinity,
+      Container(
+        key: key,
+        color: Colors.black,
+        child: Stack(
+          children: <Widget>[
+            Center(
+              child: Image(
+                image: image,
+                height: double.infinity,
+                width: double.infinity,
+                fit: imageFit,
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
                   width: double.infinity,
-                  fit: imageFit,
+                  margin: EdgeInsets.only(
+                    bottom: 24,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  color: caption != null ? Colors.black54 : Colors.transparent,
+                  child: caption != null
+                      ? Text(
+                          caption,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      : SizedBox(),
                 ),
               ),
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(
-                      bottom: 24,
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
-                    ),
-                    color:
-                        caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption != null
-                        ? Text(
-                            caption,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          )
-                        : SizedBox(),
-                  ),
-                ),
-              )
-            ],
-          ),
+            )
+          ],
         ),
-        shown: shown,
-        duration: duration ?? Duration(seconds: 3));
+      ),
+      shown: shown,
+      duration: duration ?? Duration(seconds: 3),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
+    );
   }
 
   /// Shorthand for creating an inline story item from an image provider such as `AssetImage`
   /// or `NetworkImage`. However, the story continues to play while the image loads
   /// up.
-  factory StoryItem.inlineProviderImage(
-    ImageProvider image, {
-    Key? key,
-    Text? caption,
-    bool shown = false,
-    bool roundedTop = true,
-    bool roundedBottom = false,
-    Duration? duration,
-  }) {
+  factory StoryItem.inlineProviderImage(ImageProvider image,
+      {Key? key,
+      Text? caption,
+      bool shown = false,
+      bool roundedTop = true,
+      bool roundedBottom = false,
+      Duration? duration,
+      int likes = 0,
+      int views = 0,
+      bool hasUserLike = false}) {
     return StoryItem(
       Container(
         key: key,
@@ -367,6 +397,9 @@ class StoryItem {
       ),
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
+      views: views,
+      likes: likes,
+      hasUserLike: hasUserLike,
     );
   }
 }
@@ -387,6 +420,8 @@ class StoryView extends StatefulWidget {
   /// for inline stories inside ListViews, it is preferrable to not to
   /// provide this callback so as to enable scroll events on the list view.
   final Function(Direction?)? onVerticalSwipeComplete;
+
+  final Function? onLikePressed;
 
   /// Callback for when a story is currently being shown.
   final ValueChanged<StoryItem>? onStoryShow;
@@ -414,6 +449,7 @@ class StoryView extends StatefulWidget {
     this.repeat = false,
     this.inline = false,
     this.onVerticalSwipeComplete,
+    this.onLikePressed,
   });
 
   @override
@@ -705,6 +741,35 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 }),
                 width: 70),
           ),
+          Positioned(
+            top: 64,
+            right: 8,
+            child: Container(
+              width: 48,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  InkWell(onTap: () {widget.onLikePressed!();},
+                    child: Column(
+                children:[Icon(
+                      _currentStory!.hasUserLike
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: _currentStory!.hasUserLike
+                          ? Theme.of(context).primaryColor
+                          : Colors.grey,
+              ),
+
+
+                  Text("${_currentStory!.likes}",),
+                  ]),),
+                  SizedBox(height: 30,),
+                  Icon(Icons.remove_red_eye_outlined,color: Colors.grey,),
+                  Text("${_currentStory!.views}",),
+                ],
+              ),
+            ),
+          )
         ],
       ),
     );
