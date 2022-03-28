@@ -453,7 +453,11 @@ class StoryView extends StatefulWidget {
     this.repeat = false,
     this.inline = false,
     this.onVerticalSwipeComplete,
-    this.onLikePressed, this.inactiveColor, this.likeIcon, this.activeColor, this.iconTextStyle,
+    this.onLikePressed,
+    this.inactiveColor,
+    this.likeIcon,
+    this.activeColor,
+    this.iconTextStyle,
   });
 
   @override
@@ -745,33 +749,57 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 }),
                 width: 70),
           ),
-          Positioned(
-            top: 64,
-            right: 8,
+          Align(
+            alignment: Alignment.topCenter,
             child: Container(
               decoration: BoxDecoration(
-                  boxShadow: [BoxShadow(color: Colors.black26,blurRadius: 8.0,spreadRadius: 1.0)]
+                gradient: LinearGradient(
+                    colors: [Colors.black38, Colors.transparent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter),
               ),
-              width: 48,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  InkWell(onTap: () {widget.onLikePressed!(_currentStory!);},
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Positioned(
+                  top: 56,
+                  right: 0,
+                  child: Container(
+                    width: 48,
                     child: Column(
-                children:[Icon(
-                      widget.likeIcon,
-                      color: _currentStory!.hasUserLike
-                          ? widget.activeColor
-                          : widget.inactiveColor,
-              ),
-
-
-                  Text("${_currentStory!.likes}",style: widget.iconTextStyle,),
-                  ]),),
-                  SizedBox(height: 30,),
-                  Icon(Icons.remove_red_eye_outlined,color: widget.inactiveColor,),
-                  Text("${_currentStory!.views}",style: widget.iconTextStyle,),
-                ],
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            widget.onLikePressed!(_currentStory!);
+                          },
+                          child: Column(children: [
+                            Icon(
+                              widget.likeIcon,
+                              color: _currentStory!.hasUserLike
+                                  ? widget.activeColor
+                                  : widget.inactiveColor,
+                            ),
+                            Text(
+                              "${_currentStory!.likes}",
+                              style: widget.iconTextStyle,
+                            ),
+                          ]),
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        Icon(
+                          Icons.remove_red_eye_outlined,
+                          color: widget.inactiveColor,
+                        ),
+                        Text(
+                          "${_currentStory!.views}",
+                          style: widget.iconTextStyle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
           )
