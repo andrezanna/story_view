@@ -753,7 +753,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
             alignment: Alignment.topCenter,
             child: Container(
               width: double.infinity,
-              height: 150,
+              height: 250,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                     colors: [Colors.black38, Colors.transparent],
@@ -761,7 +761,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                     end: Alignment.bottomCenter),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.only(top:64.0,right:8.0),
                 child: Align(
                   alignment: Alignment.topRight,
                   child: Container(
