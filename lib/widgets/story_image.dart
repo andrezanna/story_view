@@ -51,13 +51,11 @@ class ImageLoader {
           this.frames = codec;
           onComplete();
         }, onError: (error) {
-          this.state = LoadState.failure;
-          onComplete();
+          Future.delayed(Duration(milliseconds: 300),(){loadImage(onComplete);});
         });
       },
       onError: (error) {
-        this.state = LoadState.failure;
-        onComplete();
+        Future.delayed(Duration(milliseconds: 300),(){loadImage(onComplete);});
       },
     );
   }
