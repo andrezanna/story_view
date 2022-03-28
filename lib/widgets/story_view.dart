@@ -752,6 +752,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
           Align(
             alignment: Alignment.topCenter,
             child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                     colors: [Colors.black38, Colors.transparent],
