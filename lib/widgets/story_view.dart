@@ -423,6 +423,8 @@ class StoryView extends StatefulWidget {
 
   final ValueChanged<StoryItem>? onLikePressed;
 
+  final ValueChanged<StoryItem>? onWatchPressed;
+
   /// Callback for when a story is currently being shown.
   final ValueChanged<StoryItem>? onStoryShow;
 
@@ -454,6 +456,7 @@ class StoryView extends StatefulWidget {
     this.inline = false,
     this.onVerticalSwipeComplete,
     this.onLikePressed,
+    this.onWatchPressed,
     this.inactiveColor,
     this.likeIcon,
     this.activeColor,
@@ -789,6 +792,11 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                         SizedBox(
                           height: 30,
                         ),
+                  InkWell(
+                    onTap: () {
+                      widget.onWatchPressed!(_currentStory!);
+                    },
+                    child: Column(children: [
                         Icon(
                           Icons.remove_red_eye_outlined,
                           color: widget.inactiveColor,
@@ -797,6 +805,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                           "${_currentStory!.views}",
                           style: widget.iconTextStyle,
                         ),
+                    ]),
+                  ),
                       ],
                     ),
                   ),
