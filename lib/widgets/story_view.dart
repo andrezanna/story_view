@@ -3,8 +3,11 @@ import 'dart:math';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:story_view/models/story_style_config.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../controller/story_controller.dart';
+import '../models/story.dart';
 import '../utils.dart';
 import 'story_image.dart';
 import 'story_video.dart';
@@ -34,10 +37,12 @@ class StoryItem {
 
   /// The page content
   final Widget view;
+  final String? link;
   StoryItem(
     this.view, {
     required this.duration,
     this.shown = false,
+    this.link,
   });
 
   /// Short hand to create text-only page.
@@ -104,8 +109,8 @@ class StoryItem {
 
   /// Factory constructor for page images. [controller] should be same instance as
   /// one passed to the `StoryView`
-  factory StoryItem.pageImage({
-    required String url,
+  factory StoryItem.pageImage(
+    Story story, {
     required StoryController controller,
     Key? key,
     BoxFit imageFit = BoxFit.fitWidth,
@@ -113,6 +118,7 @@ class StoryItem {
     bool shown = false,
     Map<String, dynamic>? requestHeaders,
     Duration? duration,
+    String? link,
   }) {
     return StoryItem(
       Container(
@@ -121,7 +127,7 @@ class StoryItem {
         child: Stack(
           children: <Widget>[
             StoryImage.url(
-              url,
+              story.url,
               controller: controller,
               fit: imageFit,
               requestHeaders: requestHeaders,
@@ -151,7 +157,7 @@ class StoryItem {
                       : SizedBox(),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -217,7 +223,7 @@ class StoryItem {
   /// Shorthand for creating page video. [controller] should be same instance as
   /// one passed to the `StoryView`
   factory StoryItem.pageVideo(
-    String url, {
+    Story story, {
     required StoryController controller,
     Key? key,
     Duration? duration,
@@ -233,7 +239,7 @@ class StoryItem {
           child: Stack(
             children: <Widget>[
               StoryVideo.url(
-                url,
+                story.url,
                 controller: controller,
                 requestHeaders: requestHeaders,
               ),
@@ -375,7 +381,7 @@ class StoryItem {
 /// gestures to pause, forward and go to previous page.
 class StoryView extends StatefulWidget {
   /// The pages to displayed.
-  final List<StoryItem?> storyItems;
+  final List<Story> stories;
 
   /// Callback for when a full cycle of story is shown. This will be called
   /// each time the full story completes when [repeat] is set to `true`.
@@ -388,7 +394,7 @@ class StoryView extends StatefulWidget {
   final Function(Direction?)? onVerticalSwipeComplete;
 
   /// Callback for when a story is currently being shown.
-  final ValueChanged<StoryItem>? onStoryShow;
+  final ValueChanged<Story>? onStoryShow;
 
   /// Where the progress indicator should be placed.
   final ProgressPosition progressPosition;
@@ -408,9 +414,12 @@ class StoryView extends StatefulWidget {
   final Color? indicatorColor;
   // Indicator Foreground Color
   final Color? indicatorForegroundColor;
+  final List<Widget>? actions;
+  final Widget? centerWidget;
+  final StoryStyleConfig styleConfig;
 
   StoryView({
-    required this.storyItems,
+    required this.stories,
     required this.controller,
     this.onComplete,
     this.onStoryShow,
@@ -420,6 +429,9 @@ class StoryView extends StatefulWidget {
     this.onVerticalSwipeComplete,
     this.indicatorColor,
     this.indicatorForegroundColor,
+    this.actions,
+    this.centerWidget,
+    this.styleConfig=const StoryStyleConfig(),
   });
 
   @override
@@ -436,15 +448,16 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   StreamSubscription<PlaybackState>? _playbackSubscription;
 
   VerticalDragInfo? verticalDragInfo;
+  bool _showResults = false;
 
-  StoryItem? get _currentStory {
-    return widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+  Story? get _currentStory {
+    return widget.stories.firstWhereOrNull((it) => !it.watched);
   }
 
   Widget get _currentView {
-    var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
-    item ??= widget.storyItems.last;
-    return item?.view ?? Container();
+    var item = widget.stories.firstWhereOrNull((it) => !it.watched);
+    item ??= widget.stories.last;
+    return item.view(widget.controller);
   }
 
   @override
@@ -453,15 +466,15 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     // All pages after the first unshown page should have their shown value as
     // false
-    final firstPage = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    final firstPage = widget.stories.firstWhereOrNull((it) => !it.watched);
     if (firstPage == null) {
-      widget.storyItems.forEach((it2) {
-        it2!.shown = false;
+      widget.stories.forEach((it2) {
+        it2.watched = false;
       });
     } else {
-      final lastShownPos = widget.storyItems.indexOf(firstPage);
-      widget.storyItems.sublist(lastShownPos).forEach((it) {
-        it!.shown = false;
+      final lastShownPos = widget.stories.indexOf(firstPage);
+      widget.stories.sublist(lastShownPos).forEach((it) {
+        it.watched = false;
       });
     }
 
@@ -513,8 +526,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   void _play() {
     _animationController?.dispose();
     // get the next playing page
-    final storyItem = widget.storyItems.firstWhere((it) {
-      return !it!.shown;
+    final storyItem = widget.stories.firstWhere((it) {
+      return !it.watched;
     })!;
 
     if (widget.onStoryShow != null) {
@@ -526,8 +539,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     _animationController!.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        storyItem.shown = true;
-        if (widget.storyItems.last != storyItem) {
+        storyItem.watched = true;
+        if (widget.stories.last != storyItem) {
           _beginPlay();
         } else {
           // done playing
@@ -543,7 +556,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   }
 
   void _beginPlay() {
-    setState(() {});
+    setState(() {
+      _showResults = false;
+    });
     _play();
   }
 
@@ -554,8 +569,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     }
 
     if (widget.repeat) {
-      widget.storyItems.forEach((it) {
-        it!.shown = false;
+      widget.stories.forEach((it) {
+        it.watched = false;
       });
 
       _beginPlay();
@@ -566,32 +581,32 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     _animationController!.stop();
 
     if (this._currentStory == null) {
-      widget.storyItems.last!.shown = false;
+      widget.stories.last.watched = false;
     }
 
-    if (this._currentStory == widget.storyItems.first) {
+    if (this._currentStory == widget.stories.first) {
       _beginPlay();
     } else {
-      this._currentStory!.shown = false;
-      int lastPos = widget.storyItems.indexOf(this._currentStory);
-      final previous = widget.storyItems[lastPos - 1]!;
+      this._currentStory!.watched = false;
+      int lastPos = widget.stories.indexOf(this._currentStory!);
+      final previous = widget.stories[lastPos - 1]!;
 
-      previous.shown = false;
+      previous.watched = false;
 
       _beginPlay();
     }
   }
 
   void _goForward() {
-    if (this._currentStory != widget.storyItems.last) {
+    if (this._currentStory != widget.stories.last) {
       _animationController!.stop();
 
       // get last showing
       final _last = this._currentStory;
 
       if (_last != null) {
-        _last.shown = true;
-        if (_last != widget.storyItems.last) {
+        _last.watched = true;
+        if (_last != widget.stories.last) {
           _beginPlay();
         }
       }
@@ -639,8 +654,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                     vertical: 8,
                   ),
                   child: PageBar(
-                    widget.storyItems
-                        .map((it) => PageData(it!.duration, it.shown))
+                    widget.stories
+                        .map((it) => PageData(it.duration, it.watched))
                         .toList(),
                     this._currentAnimation,
                     key: UniqueKey(),
@@ -716,6 +731,309 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 }),
                 width: 70),
           ),
+          if (_currentStory?.question != null && !_showResults)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _currentStory!.question!,
+                          style: widget.styleConfig.questionStyle,
+                        ),
+                        _currentStory!.answers.isEmpty?
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    widget.styleConfig.yesText,
+                                    style: widget.styleConfig.yesStyle,
+                                  ),
+                                ),
+                                onTap: () {
+                                  _currentStory!.onAnswer!(1);
+                                  _currentStory!.results[1] =
+                                      _currentStory!.results[1]! + 1;
+
+                                  setState(() {
+                                    _showResults = true;
+                                  });
+                                },
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 4.0),
+                                child: Container(
+                                  color: Colors.grey,
+                                  width: 1,
+                                  height: 20,
+                                ),
+                              ),
+                              InkWell(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    widget.styleConfig.noText,
+                                    style: widget.styleConfig.noStyle,
+                                  ),
+                                ),
+                                onTap: () {
+                                  _currentStory!.onAnswer!(0);
+                                  _currentStory!.results[0] =
+                                      _currentStory!.results[0]! + 1;
+
+                                  setState(() {
+                                    _showResults = true;
+                                  });
+                                },
+                              ),
+                            ],
+                          ):
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _currentStory!.answers
+                                .map((e) => MaterialButton(
+                                      child: Text(e.text,style: widget.styleConfig.answerStyle,),
+                                      onPressed: () {
+                                        _currentStory!.onAnswer!(e.value);
+                                        _currentStory!.results[e.value] =
+                                            _currentStory!.results[e.value]! +
+                                                1;
+                                        setState(() {
+                                          _showResults = true;
+                                        });
+                                      },
+                                    ))
+                                .toList(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (_showResults)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.styleConfig.boxBackgroundColor,
+                    borderRadius: BorderRadius.circular(widget.styleConfig.boxRadius),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _currentStory!.question!,
+                          style: widget.styleConfig.questionStyle,
+                        ),
+                        _currentStory!.answers.isEmpty?
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Stack(
+                                    children: [
+                                      LinearProgressIndicator(
+                                        value: 1 -
+                                            _currentStory!.valuePercentage(
+                                                _currentStory!.results[1]),
+                                        //borderRadius: BorderRadius.circular(6),
+                                        backgroundColor: widget.styleConfig.valueColor,
+                                        minHeight: 35,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                widget.styleConfig.backgroundColor),
+                                      ),
+                                      Positioned(
+                                          left: 8,
+                                          top: 6,
+                                          bottom: 6,
+                                          child: Center(
+                                            child: Text(
+                                              widget.styleConfig.yesText,
+                                              style: widget.styleConfig.answerStyle,
+                                            ),
+                                          )),
+                                      Positioned(
+                                          right: 8,
+                                          top: 6,
+                                          bottom: 6,
+                                          child: Center(
+                                            child: Text(
+                                              (_currentStory!.valuePercentage(
+                                                              _currentStory!
+                                                                  .results[1]) *
+                                                          100)
+                                                      .toStringAsFixed(1) +
+                                                  '%',
+                                              style: widget.styleConfig.percentageStyle,
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Stack(
+                                    children: [
+                                      LinearProgressIndicator(
+                                        value: 1 -
+                                            _currentStory!.valuePercentage(
+                                                _currentStory!.results[0]),
+                                        //borderRadius: BorderRadius.circular(6),
+                                        backgroundColor: widget.styleConfig.valueColor,
+                                        minHeight: 35,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                widget.styleConfig.backgroundColor),
+                                      ),
+                                      Positioned(
+                                          left: 8,
+                                          top: 6,
+                                          bottom: 6,
+                                          child: Center(
+                                            child: Text(
+                                              widget.styleConfig.noText,
+                                              style: widget.styleConfig.answerStyle,
+                                            ),
+                                          )),
+                                      Positioned(
+                                          right: 8,
+                                          top: 6,
+                                          bottom: 6,
+                                          child: Center(
+                                            child: Text(
+                                              (_currentStory!.valuePercentage(
+                                                              _currentStory!
+                                                                  .results[0]) *
+                                                          100)
+                                                      .toStringAsFixed(1) +
+                                                  '%',
+                                              style: widget.styleConfig.percentageStyle),
+                                          ),
+                                          ),
+                                    ],
+                                  ),
+                                )
+                              ]):
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _currentStory!.answers
+                                .map((e) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 7.0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Stack(
+                                          children: [
+                                            LinearProgressIndicator(
+                                              value: 1 -
+                                                  _currentStory!
+                                                      .valuePercentage(
+                                                          _currentStory!
+                                                                  .results[
+                                                              e.value]),
+                                              backgroundColor: widget.styleConfig.valueColor,
+                                              minHeight: 35,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      widget.styleConfig.backgroundColor),
+                                            ),
+                                            Positioned(
+                                                left: 8,
+                                                top: 4,
+                                                bottom: 4,
+                                                child: Center(
+                                                  child: Text(
+                                                    e.text,
+                                                    style: widget.styleConfig.answerStyle,
+                                                  ),
+                                                )),
+                                            Positioned(
+                                                right: 8,
+                                                top: 6,
+                                                bottom: 6,
+                                                child: Center(
+                                                  child: Text(
+                                                    (_currentStory!.valuePercentage(
+                                                                    _currentStory!
+                                                                            .results[
+                                                                        e.value]) *
+                                                                100)
+                                                            .toStringAsFixed(1)
+                                                            .toString() +
+                                                        '%',
+                                                    style: widget.styleConfig.percentageStyle,
+                                                  ),
+                                                )),
+                                          ],
+                                        ),
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (_currentStory?.link != null)
+            Positioned(
+              bottom: 100,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.styleConfig.boxBackgroundColor,
+                    borderRadius: BorderRadius.circular(widget.styleConfig.boxRadius),
+                  ),
+                  child: GestureDetector(
+                    onTap: () {
+                      launchUrlString(_currentStory!.link!,
+                          mode: LaunchMode.externalApplication);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          widget.styleConfig.linkIcon,
+                          SizedBox(
+                            width: 4,
+                          ),
+                          Text(
+                            widget.styleConfig.linkText,
+                            style: widget.styleConfig.linkStyle,
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -826,11 +1144,11 @@ class StoryProgressIndicator extends StatelessWidget {
         this.indicatorHeight,
       ),
       foregroundPainter: IndicatorOval(
-        this.indicatorForegroundColor?? Colors.white.withOpacity(0.8),
+        this.indicatorForegroundColor ?? Colors.white.withOpacity(0.8),
         this.value,
       ),
       painter: IndicatorOval(
-        this.indicatorColor?? Colors.white.withOpacity(0.4),
+        this.indicatorColor ?? Colors.white.withOpacity(0.4),
         1.0,
       ),
     );
