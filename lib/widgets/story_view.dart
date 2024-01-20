@@ -1034,6 +1034,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 ),
               ),
             ),
+          if(_currentStory!.text!=null)
+          Positioned(bottom: 32,left: 8,right: 8,child: Center(child: Text(_currentStory!.text!)))
         ],
       ),
     );
