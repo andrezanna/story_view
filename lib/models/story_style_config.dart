@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 
 class StoryStyleConfig {
-  final TextStyle yesStyle;
-  final TextStyle noStyle;
-  final TextStyle answerStyle;
-  final TextStyle questionStyle;
-  final TextStyle linkStyle;
-  final TextStyle percentageStyle;
-  final Color valueColor;
   final Color backgroundColor;
   final Color boxBackgroundColor;
+  final Color valueColor;
+
   final double boxRadius;
-  final Widget linkIcon;
-  final String yesText;
-  final String noText;
+
+  final TextStyle answerStyle;
+  final TextStyle linkStyle;
+  final TextStyle noStyle;
+  final TextStyle percentageStyle;
+  final TextStyle questionStyle;
+  final TextStyle textStyle;
+  final TextStyle yesStyle;
+
   final String linkText;
+  final String noText;
+  final String yesText;
+
+  final Widget linkIcon;
 
   const StoryStyleConfig({
+    this.textStyle = const TextStyle(color: Colors.white),
     this.yesStyle = const TextStyle(fontSize: 24, color: Colors.green),
     this.noStyle = const TextStyle(fontSize: 24, color: Colors.red),
     this.answerStyle = const TextStyle(
@@ -36,6 +42,6 @@ class StoryStyleConfig {
     this.boxRadius = 8,
     this.yesText = 'YES',
     this.noText = 'NO',
-    this.linkText= 'DISCOVER MORE',
+    this.linkText = 'DISCOVER MORE',
   });
 }
