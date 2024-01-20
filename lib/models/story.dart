@@ -7,7 +7,6 @@ class Story {
       {this.text,
       this.link,
       this.question,
-      this.questionType,
       this.watched = false,
       this.viewCount = 0,
       this.duration = const Duration(seconds: 10),
@@ -24,7 +23,6 @@ class Story {
   String? question;
   String? userImageUrl;
   String? userName;
-  int? questionType;
   List<Answer> answers = [];
   Map<dynamic, int> results = {};
   bool watched = false;
