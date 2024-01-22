@@ -12,7 +12,7 @@ enum PlaybackState { pause, play, next, previous }
 class StoryController {
   /// Stream that broadcasts the playback state of the stories.
   final playbackNotifier = BehaviorSubject<PlaybackState>();
-  late Story currentStory;
+  Story? currentStory;
 
   /// Notify listeners with a [PlaybackState.pause] state
   void pause() {
