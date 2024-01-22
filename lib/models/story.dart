@@ -18,7 +18,9 @@ class Story {
       this.isVideo = false,
       this.answers = const [],
       this.results = const {},
-      this.onAnswer});
+      this.onAnswer,
+      this.userAnswer,
+      });
 
   String? id;
   String? text;
@@ -36,6 +38,7 @@ class Story {
   late Duration duration;
   Function? onAnswer;
   Function? onWatched;
+  dynamic userAnswer;
 
   Widget view(controller) => isVideo
       ? StoryItem.pageVideo(this, controller: controller).view
