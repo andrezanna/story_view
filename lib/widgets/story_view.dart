@@ -746,7 +746,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                         onPressed: () => Navigator.of(context).pop(),
                         icon: Icon(
                           Icons.clear,
-                          color: Colors.white,
+                          color: widget.styleConfig.inactiveLikeColor,
                         )),
                   if(widget.showLike)
                   IconButton(
