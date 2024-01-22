@@ -431,7 +431,7 @@ class StoryView extends StatefulWidget {
     this.indicatorForegroundColor,
     this.actions,
     this.centerWidget,
-    this.styleConfig=const StoryStyleConfig(),
+    this.styleConfig = const StoryStyleConfig(),
   });
 
   @override
@@ -457,6 +457,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   Widget get _currentView {
     var item = widget.stories.firstWhereOrNull((it) => !it.watched);
     item ??= widget.stories.last;
+    widget.controller.currentStory=item;
     return item.view(widget.controller);
   }
 
@@ -749,75 +750,80 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                           _currentStory!.question!,
                           style: widget.styleConfig.questionStyle,
                         ),
-                        _currentStory!.answers.isEmpty?
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              InkWell(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    widget.styleConfig.yesText,
-                                    style: widget.styleConfig.yesStyle,
-                                  ),
-                                ),
-                                onTap: () {
-                                  _currentStory!.onAnswer!(1);
-                                  _currentStory!.results[1] =
-                                      _currentStory!.results[1]! + 1;
+                        _currentStory!.answers.isEmpty
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  InkWell(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        widget.styleConfig.yesText,
+                                        style: widget.styleConfig.yesStyle,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      _currentStory!.onAnswer!(1);
+                                      _currentStory!.results[1] =
+                                          _currentStory!.results[1]! + 1;
 
-                                  setState(() {
-                                    _showResults = true;
-                                  });
-                                },
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 4.0),
-                                child: Container(
-                                  color: Colors.grey,
-                                  width: 1,
-                                  height: 20,
-                                ),
-                              ),
-                              InkWell(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    widget.styleConfig.noText,
-                                    style: widget.styleConfig.noStyle,
+                                      setState(() {
+                                        _showResults = true;
+                                      });
+                                    },
                                   ),
-                                ),
-                                onTap: () {
-                                  _currentStory!.onAnswer!(0);
-                                  _currentStory!.results[0] =
-                                      _currentStory!.results[0]! + 1;
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4.0),
+                                    child: Container(
+                                      color: Colors.grey,
+                                      width: 1,
+                                      height: 20,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        widget.styleConfig.noText,
+                                        style: widget.styleConfig.noStyle,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      _currentStory!.onAnswer!(0);
+                                      _currentStory!.results[0] =
+                                          _currentStory!.results[0]! + 1;
 
-                                  setState(() {
-                                    _showResults = true;
-                                  });
-                                },
+                                      setState(() {
+                                        _showResults = true;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: _currentStory!.answers
+                                    .map((e) => MaterialButton(
+                                          child: Text(
+                                            e.text,
+                                            style:
+                                                widget.styleConfig.answerStyle,
+                                          ),
+                                          onPressed: () {
+                                            _currentStory!.onAnswer!(e.value);
+                                            _currentStory!.results[e.value] =
+                                                _currentStory!
+                                                        .results[e.value]! +
+                                                    1;
+                                            setState(() {
+                                              _showResults = true;
+                                            });
+                                          },
+                                        ))
+                                    .toList(),
                               ),
-                            ],
-                          ):
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: _currentStory!.answers
-                                .map((e) => MaterialButton(
-                                      child: Text(e.text,style: widget.styleConfig.answerStyle,),
-                                      onPressed: () {
-                                        _currentStory!.onAnswer!(e.value);
-                                        _currentStory!.results[e.value] =
-                                            _currentStory!.results[e.value]! +
-                                                1;
-                                        setState(() {
-                                          _showResults = true;
-                                        });
-                                      },
-                                    ))
-                                .toList(),
-                          ),
                       ],
                     ),
                   ),
@@ -831,7 +837,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 child: Container(
                   decoration: BoxDecoration(
                     color: widget.styleConfig.boxBackgroundColor,
-                    borderRadius: BorderRadius.circular(widget.styleConfig.boxRadius),
+                    borderRadius:
+                        BorderRadius.circular(widget.styleConfig.boxRadius),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -842,156 +849,174 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                           _currentStory!.question!,
                           style: widget.styleConfig.questionStyle,
                         ),
-                        _currentStory!.answers.isEmpty?
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Stack(
-                                    children: [
-                                      LinearProgressIndicator(
-                                        value: 1 -
-                                            _currentStory!.valuePercentage(
-                                                _currentStory!.results[1]),
-                                        //borderRadius: BorderRadius.circular(6),
-                                        backgroundColor: widget.styleConfig.valueColor,
-                                        minHeight: 35,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                widget.styleConfig.backgroundColor),
-                                      ),
-                                      Positioned(
-                                          left: 8,
-                                          top: 6,
-                                          bottom: 6,
-                                          child: Center(
-                                            child: Text(
-                                              widget.styleConfig.yesText,
-                                              style: widget.styleConfig.answerStyle,
-                                            ),
-                                          )),
-                                      Positioned(
-                                          right: 8,
-                                          top: 6,
-                                          bottom: 6,
-                                          child: Center(
-                                            child: Text(
-                                              (_currentStory!.valuePercentage(
-                                                              _currentStory!
-                                                                  .results[1]) *
-                                                          100)
-                                                      .toStringAsFixed(1) +
-                                                  '%',
-                                              style: widget.styleConfig.percentageStyle,
-                                            ),
-                                          )),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 15,
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(6),
-                                  child: Stack(
-                                    children: [
-                                      LinearProgressIndicator(
-                                        value: 1 -
-                                            _currentStory!.valuePercentage(
-                                                _currentStory!.results[0]),
-                                        //borderRadius: BorderRadius.circular(6),
-                                        backgroundColor: widget.styleConfig.valueColor,
-                                        minHeight: 35,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                widget.styleConfig.backgroundColor),
-                                      ),
-                                      Positioned(
-                                          left: 8,
-                                          top: 6,
-                                          bottom: 6,
-                                          child: Center(
-                                            child: Text(
-                                              widget.styleConfig.noText,
-                                              style: widget.styleConfig.answerStyle,
-                                            ),
-                                          )),
-                                      Positioned(
-                                          right: 8,
-                                          top: 6,
-                                          bottom: 6,
-                                          child: Center(
-                                            child: Text(
-                                              (_currentStory!.valuePercentage(
-                                                              _currentStory!
-                                                                  .results[0]) *
-                                                          100)
-                                                      .toStringAsFixed(1) +
-                                                  '%',
-                                              style: widget.styleConfig.percentageStyle),
+                        _currentStory!.answers.isEmpty
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Stack(
+                                        children: [
+                                          LinearProgressIndicator(
+                                            value: 1 -
+                                                _currentStory!.valuePercentage(
+                                                    _currentStory!.results[1]),
+                                            //borderRadius: BorderRadius.circular(6),
+                                            backgroundColor:
+                                                widget.styleConfig.valueColor,
+                                            minHeight: 35,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    widget.styleConfig
+                                                        .backgroundColor),
                                           ),
-                                          ),
-                                    ],
-                                  ),
-                                )
-                              ]):
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: _currentStory!.answers
-                                .map((e) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 7.0),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Stack(
-                                          children: [
-                                            LinearProgressIndicator(
-                                              value: 1 -
-                                                  _currentStory!
-                                                      .valuePercentage(
-                                                          _currentStory!
-                                                                  .results[
-                                                              e.value]),
-                                              backgroundColor: widget.styleConfig.valueColor,
-                                              minHeight: 35,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                      widget.styleConfig.backgroundColor),
-                                            ),
-                                            Positioned(
-                                                left: 8,
-                                                top: 4,
-                                                bottom: 4,
-                                                child: Center(
-                                                  child: Text(
-                                                    e.text,
-                                                    style: widget.styleConfig.answerStyle,
-                                                  ),
-                                                )),
-                                            Positioned(
-                                                right: 8,
-                                                top: 6,
-                                                bottom: 6,
-                                                child: Center(
-                                                  child: Text(
-                                                    (_currentStory!.valuePercentage(
-                                                                    _currentStory!
-                                                                            .results[
-                                                                        e.value]) *
-                                                                100)
-                                                            .toStringAsFixed(1)
-                                                            .toString() +
-                                                        '%',
-                                                    style: widget.styleConfig.percentageStyle,
-                                                  ),
-                                                )),
-                                          ],
-                                        ),
+                                          Positioned(
+                                              left: 8,
+                                              top: 6,
+                                              bottom: 6,
+                                              child: Center(
+                                                child: Text(
+                                                  widget.styleConfig.yesText,
+                                                  style: widget
+                                                      .styleConfig.answerStyle,
+                                                ),
+                                              )),
+                                          Positioned(
+                                              right: 8,
+                                              top: 6,
+                                              bottom: 6,
+                                              child: Center(
+                                                child: Text(
+                                                  (_currentStory!.valuePercentage(
+                                                                  _currentStory!
+                                                                          .results[
+                                                                      1]) *
+                                                              100)
+                                                          .toStringAsFixed(1) +
+                                                      '%',
+                                                  style: widget.styleConfig
+                                                      .percentageStyle,
+                                                ),
+                                              )),
+                                        ],
                                       ),
-                                    ))
-                                .toList(),
-                          ),
+                                    ),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Stack(
+                                        children: [
+                                          LinearProgressIndicator(
+                                            value: 1 -
+                                                _currentStory!.valuePercentage(
+                                                    _currentStory!.results[0]),
+                                            //borderRadius: BorderRadius.circular(6),
+                                            backgroundColor:
+                                                widget.styleConfig.valueColor,
+                                            minHeight: 35,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    widget.styleConfig
+                                                        .backgroundColor),
+                                          ),
+                                          Positioned(
+                                              left: 8,
+                                              top: 6,
+                                              bottom: 6,
+                                              child: Center(
+                                                child: Text(
+                                                  widget.styleConfig.noText,
+                                                  style: widget
+                                                      .styleConfig.answerStyle,
+                                                ),
+                                              )),
+                                          Positioned(
+                                            right: 8,
+                                            top: 6,
+                                            bottom: 6,
+                                            child: Center(
+                                              child: Text(
+                                                  (_currentStory!.valuePercentage(
+                                                                  _currentStory!
+                                                                          .results[
+                                                                      0]) *
+                                                              100)
+                                                          .toStringAsFixed(1) +
+                                                      '%',
+                                                  style: widget.styleConfig
+                                                      .percentageStyle),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ])
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: _currentStory!.answers
+                                    .map((e) => Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 7.0),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            child: Stack(
+                                              children: [
+                                                LinearProgressIndicator(
+                                                  value: 1 -
+                                                      _currentStory!
+                                                          .valuePercentage(
+                                                              _currentStory!
+                                                                      .results[
+                                                                  e.value]),
+                                                  backgroundColor: widget
+                                                      .styleConfig.valueColor,
+                                                  minHeight: 35,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                              Color>(
+                                                          widget.styleConfig
+                                                              .backgroundColor),
+                                                ),
+                                                Positioned(
+                                                    left: 8,
+                                                    top: 4,
+                                                    bottom: 4,
+                                                    child: Center(
+                                                      child: Text(
+                                                        e.text,
+                                                        style: widget
+                                                            .styleConfig
+                                                            .answerStyle,
+                                                      ),
+                                                    )),
+                                                Positioned(
+                                                    right: 8,
+                                                    top: 6,
+                                                    bottom: 6,
+                                                    child: Center(
+                                                      child: Text(
+                                                        (_currentStory!.valuePercentage(
+                                                                        _currentStory!.results[e
+                                                                            .value]) *
+                                                                    100)
+                                                                .toStringAsFixed(
+                                                                    1)
+                                                                .toString() +
+                                                            '%',
+                                                        style: widget
+                                                            .styleConfig
+                                                            .percentageStyle,
+                                                      ),
+                                                    )),
+                                              ],
+                                            ),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
                       ],
                     ),
                   ),
@@ -1007,7 +1032,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 child: Container(
                   decoration: BoxDecoration(
                     color: widget.styleConfig.boxBackgroundColor,
-                    borderRadius: BorderRadius.circular(widget.styleConfig.boxRadius),
+                    borderRadius:
+                        BorderRadius.circular(widget.styleConfig.boxRadius),
                   ),
                   child: GestureDetector(
                     onTap: () {
@@ -1034,8 +1060,16 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 ),
               ),
             ),
-          if(_currentStory!.text!=null)
-          Positioned(bottom: 32,left: 8,right: 8,child: Center(child: Text(_currentStory!.text!,style: widget.styleConfig.textStyle,)))
+          if (_currentStory!.text != null)
+            Positioned(
+                bottom: 32,
+                left: 8,
+                right: 8,
+                child: Text(
+                  _currentStory!.text!,
+                  //textAlign: TextAlign.center,
+                  style: widget.styleConfig.textStyle,
+                ))
         ],
       ),
     );

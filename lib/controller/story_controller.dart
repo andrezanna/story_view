@@ -1,5 +1,7 @@
 import 'package:rxdart/rxdart.dart';
 
+import '../models/story.dart';
+
 enum PlaybackState { pause, play, next, previous }
 
 /// Controller to sync playback between animated child (story) views. This
@@ -10,6 +12,7 @@ enum PlaybackState { pause, play, next, previous }
 class StoryController {
   /// Stream that broadcasts the playback state of the stories.
   final playbackNotifier = BehaviorSubject<PlaybackState>();
+  late Story currentStory;
 
   /// Notify listeners with a [PlaybackState.pause] state
   void pause() {
@@ -34,4 +37,5 @@ class StoryController {
   void dispose() {
     playbackNotifier.close();
   }
+
 }
