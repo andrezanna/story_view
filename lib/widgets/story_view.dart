@@ -751,9 +751,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   if(widget.showLike)
                   IconButton(
                     onPressed: () {
-                      //setState(() {
+                      setState(() {
                         _currentStory!.liked = !_currentStory!.liked;
-                      //});
+                      });
                       widget.onLikeChange!(_currentStory!, _currentStory!.liked);
                     },
                     icon: Icon(
