@@ -4,8 +4,12 @@ class StoryStyleConfig {
   final Color backgroundColor;
   final Color boxBackgroundColor;
   final Color valueColor;
+  final Color likeColor;
+  final Color inactiveLikeColor;
 
   final double boxRadius;
+
+  final IconData likeIcon;
 
   final TextStyle answerStyle;
   final TextStyle linkStyle;
@@ -25,6 +29,7 @@ class StoryStyleConfig {
     this.textStyle = const TextStyle(color: Colors.white),
     this.yesStyle = const TextStyle(fontSize: 24, color: Colors.green),
     this.noStyle = const TextStyle(fontSize: 24, color: Colors.red),
+
     this.answerStyle = const TextStyle(
         fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
     this.questionStyle = const TextStyle(
@@ -39,6 +44,9 @@ class StoryStyleConfig {
     this.valueColor = Colors.green,
     this.backgroundColor = Colors.grey,
     this.boxBackgroundColor = Colors.white,
+    this.likeColor = Colors.red,
+    this.inactiveLikeColor = Colors.white,
+    this.likeIcon = Icons.favorite_border,
     this.boxRadius = 8,
     this.yesText = 'YES',
     this.noText = 'NO',

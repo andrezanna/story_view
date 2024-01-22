@@ -414,9 +414,11 @@ class StoryView extends StatefulWidget {
   final Color? indicatorColor;
   // Indicator Foreground Color
   final Color? indicatorForegroundColor;
-  final List<Widget>? actions;
   final Widget? centerWidget;
   final StoryStyleConfig styleConfig;
+  final bool showLike;
+  final bool showClose;
+  final Function? onLikeChange;
 
   StoryView({
     required this.stories,
@@ -429,9 +431,11 @@ class StoryView extends StatefulWidget {
     this.onVerticalSwipeComplete,
     this.indicatorColor,
     this.indicatorForegroundColor,
-    this.actions,
     this.centerWidget,
     this.styleConfig = const StoryStyleConfig(),
+    this.showLike = true,
+    this.showClose = true,
+    this.onLikeChange,
   });
 
   @override
@@ -457,7 +461,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   Widget get _currentView {
     var item = widget.stories.firstWhereOrNull((it) => !it.watched);
     item ??= widget.stories.last;
-    widget.controller.currentStory.value=item;
+    widget.controller.currentStory.value = item;
     return item.view(widget.controller);
   }
 
@@ -732,6 +736,35 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                 }),
                 width: 70),
           ),
+          Positioned(
+              top: 48,
+              right: 12,
+              child: Column(
+                children: [
+                  if (widget.showClose)
+                    IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.clear,
+                          color: Colors.white,
+                        )),
+                  if(widget.showLike)
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _currentStory!.liked = !_currentStory!.liked;
+                      });
+                      widget.onLikeChange!(_currentStory!, _currentStory!.liked);
+                    },
+                    icon: Icon(
+                      widget.styleConfig.likeIcon,
+                      color: _currentStory!.liked
+                          ? widget.styleConfig.likeColor
+                          : widget.styleConfig.inactiveLikeColor,
+                    ),
+                  )
+                ],
+              )),
           if (_currentStory?.question != null && !_showResults)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),

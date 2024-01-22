@@ -4,10 +4,12 @@ import '../widgets/story_view.dart';
 
 class Story {
   Story(
-      {this.text,
+      {this.id,
+      this.text,
       this.link,
       this.question,
       this.watched = false,
+      this.liked = false,
       this.viewCount = 0,
       this.duration = const Duration(seconds: 10),
       this.userName,
@@ -18,6 +20,7 @@ class Story {
       this.results = const {},
       this.onAnswer});
 
+  String? id;
   String? text;
   String? link;
   String? question;
@@ -26,6 +29,7 @@ class Story {
   List<Answer> answers = [];
   Map<dynamic, int> results = {};
   bool watched = false;
+  bool liked = false;
   int viewCount = 0;
   String url;
   bool isVideo;
@@ -37,7 +41,8 @@ class Story {
       ? StoryItem.pageVideo(this, controller: controller).view
       : StoryItem.pageImage(this, controller: controller).view;
 
-  double valuePercentage(value)=>value/results.values.reduce((value, element) => value+element);
+  double valuePercentage(value) =>
+      value / results.values.reduce((value, element) => value + element);
 }
 
 class Answer {
