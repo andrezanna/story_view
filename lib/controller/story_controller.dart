@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/story.dart';
@@ -12,7 +13,7 @@ enum PlaybackState { pause, play, next, previous }
 class StoryController {
   /// Stream that broadcasts the playback state of the stories.
   final playbackNotifier = BehaviorSubject<PlaybackState>();
-  Story? currentStory;
+  late final ValueNotifier<Story?> currentStory=ValueNotifier<Story?>(null);
 
   /// Notify listeners with a [PlaybackState.pause] state
   void pause() {
