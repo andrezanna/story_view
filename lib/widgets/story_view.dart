@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:story_view/models/story_style_config.dart';
+import 'package:story_view/widgets/like_button.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../controller/story_controller.dart';
@@ -418,7 +419,7 @@ class StoryView extends StatefulWidget {
   final StoryStyleConfig styleConfig;
   final bool showLike;
   final bool showClose;
-  final Function? onLikeChange;
+  final Function(Story story, bool value)? onLikeChange;
 
   StoryView({
     required this.stories,
@@ -748,21 +749,15 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                           Icons.clear,
                           color: widget.styleConfig.inactiveLikeColor,
                         )),
-                  if(widget.showLike)
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentStory!.liked = !_currentStory!.liked;
-                      });
-                      widget.onLikeChange!(_currentStory!, _currentStory!.liked);
+                  if (widget.showLike)
+                    LikeButton(
+                      _currentStory!,
+                      onChange: () {
+                      widget.onLikeChange!(_currentStory!,_currentStory!.liked);
                     },
-                    icon: Icon(
-                      widget.styleConfig.likeIcon,
-                      color: _currentStory!.liked
-                          ? widget.styleConfig.likeColor
-                          : widget.styleConfig.inactiveLikeColor,
-                    ),
-                  )
+                      styleConfig: widget.styleConfig,
+
+                    )
                 ],
               )),
           if (_currentStory?.question != null && !_showResults)

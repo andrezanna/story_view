@@ -183,6 +183,10 @@ class _MoreStoriesState extends State<MoreStories> {
         onComplete: () {
           print("Completed a cycle");
         },
+        onLikeChange: (story, value){
+          print(story);
+          print(value);
+        },
         progressPosition: ProgressPosition.top,
         repeat: false,
         controller: storyController,
