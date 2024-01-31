@@ -146,6 +146,7 @@ class _MoreStoriesState extends State<MoreStories> {
             onAnswer: (value) {
               print(value);
             },
+            userAnswer: 2,
             results: {0: 70, 1: 30},
           ),
           Story(
