@@ -777,8 +777,12 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      launchUrlString(_currentStory!.link!,
-                          mode: LaunchMode.externalApplication);
+                      if(_currentStory!.onLink!=null){
+                        _currentStory!.onLink!(_currentStory!.link!);
+                      }else {
+                        launchUrlString(_currentStory!.link!,
+                            mode: LaunchMode.externalApplication);
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),

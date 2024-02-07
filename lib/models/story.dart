@@ -20,6 +20,7 @@ class Story {
       this.results = const {},
       this.onAnswer,
       this.userAnswer,
+        this.onLink,
       });
 
   String? id;
@@ -39,6 +40,7 @@ class Story {
   Function? onAnswer;
   Function? onWatched;
   dynamic userAnswer;
+  Function? onLink;
 
   Widget view(controller) => isVideo
       ? StoryItem.pageVideo(this, controller: controller).view
