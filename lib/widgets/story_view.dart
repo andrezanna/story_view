@@ -421,6 +421,7 @@ class StoryView extends StatefulWidget {
   final bool showLike;
   final bool showClose;
   final Function(Story story, bool value)? onLikeChange;
+  final Function(String url)? onLink;
 
   StoryView({
     required this.stories,
@@ -438,6 +439,7 @@ class StoryView extends StatefulWidget {
     this.showLike = true,
     this.showClose = true,
     this.onLikeChange,
+    this.onLink,
   });
 
   @override
@@ -777,8 +779,8 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      if(_currentStory!.onLink!=null){
-                        _currentStory!.onLink!(_currentStory!.link!);
+                      if(widget.onLink!=null){
+                        widget.onLink!(_currentStory!.link!);
                       }else {
                         launchUrlString(_currentStory!.link!,
                             mode: LaunchMode.externalApplication);
